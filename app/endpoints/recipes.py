@@ -1,44 +1,65 @@
-from fastapi import APIRouter, HTTPException, Request
-from app.models import RecipeQuery
-from app.services import get_embedding
 import faiss
 import random
 import logging
+from fastapi import APIRouter, HTTPException, Request
+from app.models import RecipeQuery
+from app.services import get_embedding
 
 logger = logging.getLogger("main")
 
 router = APIRouter()
 
+
 @router.post("/search/")
 async def search_recipes(query: RecipeQuery, request: Request):
+    """
+    Endpoint to search for recipes based on a query string.
+
+    :param query: A `RecipeQuery` object containing the search query string.
+    :param request: A `Request` object providing access to application state.
+    :return: A list of up to 10 random recipes matching the query.
+    :raises HTTPException: If no recipes are found or an error occurs.
+    """
+
     df = request.app.state.df
     index = request.app.state.index
     config = request.app.state.config
 
     logger.info(f"Received query: {query.query}")
 
-    query_embedding = get_embedding(query.query, config['RUNPOD_ENDPOINT'])
-    faiss.normalize_L2(query_embedding)
+    try:
+        query_embedding = await get_embedding(
+            text=query.query, endpoint=config["RUNPOD_ENDPOINT"], api_key=config["RUNPOD_API_KEY"]
+        )
 
-    k = 100
-    distances, indices = index.search(query_embedding, k)
+        faiss.normalize_L2(query_embedding)
 
-    results = []
-    for i, idx in enumerate(indices[0]):
-        if distances[0][i] < float(config['LOWER_THRESHOLD']):
-            break
-        result = {
-            "title": df.iloc[idx]["title"],
-            "ingredients": df.iloc[idx]["ingredients"].tolist(),
-            "link": f"https://{df.iloc[idx]['link']}",
-        }
-        results.append(result)
+        k = 100
+        distances, indices = index.search(query_embedding, k)
 
-    if not results:
-        logger.warning("No recipes found for the given query.")
-        raise HTTPException(status_code=404, detail="No recipes found.")
+        results = []
+        for i, idx in enumerate(indices[0]):
+            if distances[0][i] < float(config["LOWER_THRESHOLD"]):
+                break
+            result = {
+                "title": df.iloc[idx]["title"],
+                "ingredients": df.iloc[idx]["ingredients"].tolist(),
+                "link": f"https://{df.iloc[idx]['link']}",
+            }
+            results.append(result)
 
-    random_results = random.sample(results, min(10, len(results)))
-    logger.info(f"Returning {len(random_results)} random recipes.")
+        if not results:
+            logger.warning("No recipes found for the given query.")
+            raise HTTPException(status_code=404, detail="No recipes found.")
 
-    return random_results
+        random_results = random.sample(results, min(10, len(results)))
+        logger.info(f"Returning {len(random_results)} random recipes.")
+
+        return random_results
+
+    except HTTPException as e:
+        logger.error(f"HTTP error: {e.detail}")
+        raise
+    except Exception as e:
+        logger.error(f"Unknown error occurred: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")

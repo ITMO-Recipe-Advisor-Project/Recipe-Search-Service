@@ -19,11 +19,8 @@ config = get_config()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Управление жизненным циклом приложения: инициализация и очистка ресурсов.
-    """
     logger.info("Initializing data...")
-    df, index = load_data(config['DATASET'])
+    df, index = load_data(config["DATASET"])
     app.state.df = df
     app.state.index = index
     app.state.config = config
