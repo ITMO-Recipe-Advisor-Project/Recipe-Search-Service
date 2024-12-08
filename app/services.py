@@ -1,33 +1,44 @@
 import numpy as np
+import httpx
 from fastapi import HTTPException
-from app.config import get_config
-import runpod
 import logging
 
 logger = logging.getLogger("main")
 
-runpod.api_key = get_config().get("RUNPOD_API_KEY")
 
-def get_embedding(sentence: str, endpoint: str):
+async def get_embedding(endpoint: str, api_key: str, text: str, timeout: int = 60):
+    """
+    Asynchronous request to the RunPod API to obtain embeddings.
+
+    :param endpoint: RunPod API endpoint.
+    :param api_key: API key for authorization.
+    :param text: Text to process.
+    :param timeout: Request timeout in seconds.
+    :return: Value from the `output` field of the response.
+    """
+    url = f"https://api.runpod.ai/v2/{endpoint}/runsync"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+    }
+    payload = {"input": {"text": text}}
+
     try:
-        runpod_endpoint = runpod.Endpoint(endpoint)
-        response = runpod_endpoint.run_sync(
-            {
-                "input": {
-                    "text": sentence,
-                },
-            },
-            timeout=60,
-        )
-        embedding = (
-            np.array(response)
-            .reshape(1, -1)
-            .astype(np.float32)
-        )
-        return embedding
-    except TimeoutError:
-        logger.error("RunPod API request has timed out.")
-        raise HTTPException(status_code=500, detail="RunPod API request has timed out.")
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, headers=headers, json=payload, timeout=timeout)
+            response.raise_for_status()
+
+            data = response.json()
+            if "output" not in data:
+                raise ValueError("The response does not contain the 'output' field.")
+
+            embedding = np.array(data["output"]).reshape(1, -1).astype(np.float32)
+
+            return embedding
+
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="Request to RunPod API timed out.")
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=f"HTTP error: {e.response.text}")
     except Exception as e:
-        logger.error(f"An error occurred while making a request to RunPod: {e}")
-        raise HTTPException(status_code=500, detail="An error occurred while making a request to RunPod.")
+        raise HTTPException(status_code=500, detail=f"Unknown error: {str(e)}")

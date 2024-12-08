@@ -5,9 +5,15 @@ import logging
 
 logger = logging.getLogger("main")
 
+
 def load_data(dataset_path: str):
     """
-    Загружает данные из указанного файла и инициализирует FAISS индекс.
+    Loads data from a Parquet dataset, processes embeddings, and creates a FAISS index.
+
+    :param dataset_path: Path to the Parquet file containing the dataset.
+    :return: A tuple containing:
+             - The processed DataFrame with the embeddings and directions removed.
+             - A FAISS index initialized with the normalized embeddings.
     """
     logger.info("Loading data...")
     df = pd.read_parquet(dataset_path)
