@@ -51,11 +51,14 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKER_REGISTRY }}/recipe-search-service:latest
 
+    - name: Start SSH agent
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
     - name: Restart on the server
       run: |
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
-        chmod 600 private_key
-        ssh -i private_key -p${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }} << EOF
+        ssh -p${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }} << EOF
           set -e
           echo "Navigating to PROJECT_DIR..."
           cd /opt/Recipe-Advisor-Services
