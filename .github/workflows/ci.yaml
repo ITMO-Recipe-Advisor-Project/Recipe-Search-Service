@@ -51,7 +51,7 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKER_REGISTRY }}/recipe-search-service:latest
 
-    - name: Restart on server
+    - name: Restart on the server
       run: |
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
         chmod 600 private_key
