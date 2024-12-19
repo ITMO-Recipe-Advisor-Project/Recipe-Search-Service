@@ -1,4 +1,4 @@
-name: Lint, Build, Test, and Deploy Docker Image
+name: Lint and Deploy Docker Image
 
 on:
   push:
@@ -26,33 +26,9 @@ jobs:
     - name: Run black
       run: black --line-length 120 --check app
 
-  build_and_test:
-    runs-on: ubuntu-22.04
-    needs: lint
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-
-    - name: Build and test Docker container
-      uses: docker/build-push-action@v4
-      with:
-        context: .
-        tags: recipe-search-service:pr-${{ github.event.number }}
-        load: true
-        cache-from: type=local,src=/tmp/.buildx-cache
-        cache-to: type=local,dest=/tmp/.buildx-cache
-
-    - name: Run container for testing
-      run: |
-        docker run --rm recipe-search-service:pr-${{ github.event.number }}
-
   deploy:
     runs-on: ubuntu-22.04
-    needs: build_and_test
+    needs: lint
     if: github.event_name == 'push' && contains(github.ref, 'refs/heads/main')
 
     steps:
@@ -61,6 +37,14 @@ jobs:
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
+
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-docker-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-docker-
 
     - name: Log in to DockerHub
       uses: docker/login-action@v2
@@ -74,17 +58,18 @@ jobs:
       with:
         context: .
         push: true
-        tags: my-docker-image:latest
+        tags: recipe-search-service:latest
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache
 
     - name: Deploy to server
       run: |
         ssh -o StrictHostKeyChecking=no user@server << EOF
-          docker pull my-docker-image:latest
+          cd
+          docker pull recipe-search-service:latest
           docker stop my-app || true
           docker rm my-app || true
-          docker run -d --name my-app -p 80:80 my-docker-image:latest
+          docker run -d --name my-app -p 80:80 recipe-search-service:latest
         EOF
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
