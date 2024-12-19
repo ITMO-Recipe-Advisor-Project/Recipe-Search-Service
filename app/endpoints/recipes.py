@@ -1,11 +1,13 @@
 import faiss
 import random
 import logging
+from app.config import get_config
 from fastapi import APIRouter, HTTPException, Request
 from app.models import RecipeQuery
 from app.services import get_embedding
 
 logger = logging.getLogger("main")
+k_neighbors = get_config()['K_NEIGHBORS']
 
 router = APIRouter()
 
@@ -34,7 +36,7 @@ async def search_recipes(query: RecipeQuery, request: Request):
 
         faiss.normalize_L2(query_embedding)
 
-        k = 100
+        k = k_neighbors
         distances, indices = index.search(query_embedding, k)
 
         results = []
