@@ -75,5 +75,5 @@ jobs:
           echo "Starting service..."
           docker compose up recipe-search-service -d
     
-          echo "Deployment completed successfully."
+          echo "Deployment completed successfully"
         EOF
