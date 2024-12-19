@@ -37,14 +37,6 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: Cache Docker layers
-      uses: actions/cache@v3
-      with:
-        path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-docker-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-docker-
-
     - name: Log in to DockerHub
       uses: docker/login-action@v2
       with:
@@ -58,17 +50,27 @@ jobs:
         context: .
         push: true
         tags: ${{ secrets.DOCKER_REGISTRY }}/recipe-search-service:latest
-        cache-from: type=local,src=/tmp/.buildx-cache
-        cache-to: type=local,dest=/tmp/.buildx-cache
 
-    - name: Deploy to server
+    - name: Restart on server
       run: |
-        ssh -o StrictHostKeyChecking=no user@server << EOF
-          cd
-          docker pull recipe-search-service:latest
-          docker stop my-app || true
-          docker rm my-app || true
-          docker run -d --name my-app -p 80:80 recipe-search-service:latest
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
+        chmod 600 private_key
+        ssh -i private_key -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_SERVER }} << EOF
+          set -e
+          echo "Navigating to PROJECT_DIR..."
+          cd /opt/Recipe-Advisor-Services
+    
+          echo "Stopping service..."
+          docker compose down recipe-search-service
+    
+          echo "Pulling latest image..."
+          docker compose pull recipe-search-service
+    
+          echo "Cleaning up unused images..."
+          docker image prune -f
+    
+          echo "Starting service..."
+          docker compose up recipe-search-service -d
+    
+          echo "Deployment completed successfully."
         EOF
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
