@@ -50,7 +50,7 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ secrets.DOCKER_REGISTRY }}/recipe-search-service:latest
+        tags: ${{ secrets.DOCKER_REGISTRY }}/${{ vars.SERVICE_NAME }}:latest
 
     - name: Start SSH agent
       uses: webfactory/ssh-agent@v0.9.0
@@ -65,16 +65,16 @@ jobs:
           cd /opt/Recipe-Advisor-Services
     
           echo "Stopping service..."
-          docker compose down recipe-search-service
+          docker compose down ${{ vars.SERVICE_NAME }}
     
           echo "Pulling latest image..."
-          docker compose pull recipe-search-service
+          docker compose pull ${{ vars.SERVICE_NAME }}
     
           echo "Cleaning up unused images..."
           docker image prune -f
     
           echo "Starting service..."
-          docker compose up recipe-search-service -d
+          docker compose up ${{ vars.SERVICE_NAME }} -d
     
           echo "Deployment completed successfully"
         EOF
