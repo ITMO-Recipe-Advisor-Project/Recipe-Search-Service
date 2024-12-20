@@ -17,6 +17,6 @@ def get_config():
         "RUNPOD_API_KEY": env_vars["RUNPOD_API_KEY"],
         "RUNPOD_ENDPOINT": env_vars["RUNPOD_ENDPOINT"],
         "DATASET": env_vars["DATASET"],
-        "LOWER_THRESHOLD": env_vars["LOWER_THRESHOLD"],
+        "LOWER_THRESHOLD": float(env_vars["LOWER_THRESHOLD"]),
         "K_NEIGHBORS": env_vars["K_NEIGHBORS"],
     }
