@@ -18,5 +18,5 @@ def get_config():
         "RUNPOD_ENDPOINT": env_vars["RUNPOD_ENDPOINT"],
         "DATASET": env_vars["DATASET"],
         "LOWER_THRESHOLD": float(env_vars["LOWER_THRESHOLD"]),
-        "K_NEIGHBORS": env_vars["K_NEIGHBORS"],
+        "K_NEIGHBORS": int(env_vars["K_NEIGHBORS"]),
     }
