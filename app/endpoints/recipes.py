@@ -7,7 +7,7 @@ from app.models import RecipeQuery
 from app.services import get_embedding
 
 logger = logging.getLogger("main")
-k_neighbors = get_config()['K_NEIGHBORS']
+k_neighbors = get_config()["K_NEIGHBORS"]
 
 router = APIRouter()
 

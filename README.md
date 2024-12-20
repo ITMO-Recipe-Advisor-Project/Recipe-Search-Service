@@ -1,1 +1,1 @@
-# Recipe-Search-Service
+# Recipe Search Service
