@@ -9,7 +9,8 @@ def get_config():
              - RUNPOD_API_KEY: API key for RunPod authentication.
              - RUNPOD_ENDPOINT: API endpoint for RunPod.
              - DATASET: Path to the dataset file.
-             - LOWER_THRESHOLD: A threshold value used in the application.
+             - LOWER_THRESHOLD: A threshold value for ingredient and recipe similarity.
+             - K_NEIGHBORS: Number of neighbors to consider during index search.
     """
 
     env_vars = dotenv_values("env/.env")
