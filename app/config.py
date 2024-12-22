@@ -21,4 +21,3 @@ def get_config():
         "LOWER_THRESHOLD": float(env_vars["LOWER_THRESHOLD"]),
         "K_NEIGHBORS": int(env_vars["K_NEIGHBORS"]),
     }
-
