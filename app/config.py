@@ -8,6 +8,8 @@ def get_config():
     :return: A dictionary containing:
              - RUNPOD_API_KEY: API key for RunPod authentication.
              - RUNPOD_ENDPOINT: API endpoint for RunPod.
+             - EMBEDDING_SERVICE_LOCAL_URL: URL for the local embedding service.
+             - EMBEDDING_SERVICE_USAGE_FLAG: Boolean flag to determine if the local embedding service should be used.
              - DATASET: Path to the dataset file.
              - LOWER_THRESHOLD: A threshold value for ingredient and recipe similarity.
              - K_NEIGHBORS: Number of neighbors to consider during index search.
