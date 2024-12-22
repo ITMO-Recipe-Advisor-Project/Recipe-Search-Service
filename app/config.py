@@ -16,6 +16,8 @@ def get_config():
     return {
         "RUNPOD_API_KEY": env_vars["RUNPOD_API_KEY"],
         "RUNPOD_ENDPOINT": env_vars["RUNPOD_ENDPOINT"],
+        "EMBEDDING_SERVICE_LOCAL_URL": env_vars["EMBEDDING_SERVICE_LOCAL_URL"],
+        "EMBEDDING_SERVICE_USAGE_FLAG": bool(env_vars["EMBEDDING_SERVICE_USAGE_FLAG"]),
         "DATASET": env_vars["DATASET"],
         "LOWER_THRESHOLD": float(env_vars["LOWER_THRESHOLD"]),
         "K_NEIGHBORS": int(env_vars["K_NEIGHBORS"]),
