@@ -31,7 +31,11 @@ async def search_recipes(query: RecipeQuery, request: Request):
 
     try:
         query_embedding = await get_embedding(
-            text=query.query, endpoint=config["RUNPOD_ENDPOINT"], api_key=config["RUNPOD_API_KEY"]
+            text=query.query,
+            endpoint=config["RUNPOD_ENDPOINT"],
+            api_key=config["RUNPOD_API_KEY"],
+            local_url=config["EMBEDDING_SERVICE_LOCAL_URL"],
+            use_local=config["EMBEDDING_SERVICE_USAGE_FLAG"],
         )
 
         faiss.normalize_L2(query_embedding)
